@@ -38,8 +38,8 @@ class Days(db.Model):
     __tablename__ = "days"
     id = Column(Integer, primary_key=True)
     day = Column(Integer)
-    month = Column(Integer, ForeignKey('month.id'))
-    year = Column(Integer, ForeignKey('years.id'))
+    month_id = Column(Integer, ForeignKey('month.id'))
+    year_id = Column(Integer, ForeignKey('years.id'))
 
     def add(self):
         db.session.add(self)
@@ -59,14 +59,14 @@ list_days = []
 def get_calendar(current_year, next_year):
     for year in range(current_year, next_year + 1):
         for month in range(1, 13):
-            object_days = {
-                'month': month,
-                'days': [],
-                'year': year
-            }
             if month == 7 or month == 6 or month == 8:
                 pass
             else:
+                object_days = {
+                    'month': month,
+                    'days': [],
+                    'year': year
+                }
                 month_name = calendar.month_name[month]
                 cal = calendar.monthcalendar(year, month)
                 for week in cal:
@@ -75,23 +75,20 @@ def get_calendar(current_year, next_year):
                         if day != 0:
                             object_days['days'].append(day_str)
                             day_of_week = calendar.day_name[calendar.weekday(year, month, day)]
-                            # print(f'{year}-{month}-{day_str} - {day_of_week} - {month_name}')
-            list_days.append(object_days)
+                list_days.append(object_days)
 
-    year_all = Years.query.order_by(Years.id).all()
     for year in list_days:
         year_b = Years.query.filter(Years.year == year["year"]).first()
         if not year_b:
             year_new = Years(year=year['year'])
             year_new.add()
-
-        month = Month(month=year['month'], years_id=year_b.id)
-
-# for year in list_year:
-#     for year_b in year_all:
-#         if year_b != year:
-#             year_new = Years(year=year)
-#             year_new.add()
+        if year_b:
+            month = Month(month=year['month'], years_id=year_b.id)
+            month.add()
+            month_one = Month.query.filter(Month.month == year['month']).first()
+            for day in year['days']:
+                new_day = Days(day=day, month_id=month_one.id, year_id=year_b.id)
+                new_day.add()
 
 
 @app.route('/')
