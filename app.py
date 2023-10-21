@@ -58,16 +58,9 @@ list_days = []
 
 def get_calendar(current_year, next_year):
     for year in range(current_year, next_year + 1):
-
-        if next_year:
-            range_number = 6
-        else:
-            range_number = 13
-
         for month in range(1, 13):
-            if month == 7 or month == 6 or month == 8:
-                pass
-            else:
+            if (year == current_year and month not in [1, 2, 3, 4, 5, 6, 7, 8]) or (
+                    year == next_year and month not in [6, 7, 8, 9, 10, 11, 12]):
                 object_days = {
                     'month': month,
                     'days': [],
@@ -80,10 +73,8 @@ def get_calendar(current_year, next_year):
                         day_str = str(day) if day != 0 else "  "
                         if day != 0:
                             object_days['days'].append(day_str)
-                            day_of_week = calendar.day_name[calendar.weekday(year, month, day)]
-
                 list_days.append(object_days)
-
+    print(list_days)
     for year in list_days:
         year_b = Years.query.filter(Years.year == year["year"]).first()
         if not year_b:
