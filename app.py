@@ -87,11 +87,11 @@ def get_calendar(current_year, next_year):
 
         month = Month(month=year['month'], years_id=year_b.id)
 
-# for year in list_year:
-#     for year_b in year_all:
-#         if year_b != year:
-#             year_new = Years(year=year)
-#             year_new.add()
+for year in list_year:
+    for year_b in year_all:
+        if year_b != year:
+            year_new = Years(year=year)
+            year_new.add()
 
 
 @app.route('/')
