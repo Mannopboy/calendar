@@ -17,6 +17,7 @@ class Years(db.Model):
     __tablename__ = 'years'
     id = Column(Integer, primary_key=True)
     year = Column(Integer)
+    month = db.relationship('Month', backref='years', order_by='Month.id')
 
     def add(self):
         db.session.add(self)
@@ -28,6 +29,7 @@ class Month(db.Model):
     id = Column(Integer, primary_key=True)
     month = Column(Integer)
     years_id = Column(Integer, ForeignKey('years.id'))
+    days = db.relationship('Days', backref='month', order_by='Days.id')
 
     def add(self):
         db.session.add(self)
@@ -41,13 +43,15 @@ class Days(db.Model):
     month_id = Column(Integer, ForeignKey('month.id'))
     year_id = Column(Integer, ForeignKey('years.id'))
 
+    # daily_lesson = db.relationship('DailyLesson', backref='days', order_by='DailyLesson.id')
+
     def add(self):
         db.session.add(self)
         db.session.commit()
 
 
-class DayLessons(db.Model):
-    __tablename__ = "day_lessons"
+class DailyLesson(db.Model):
+    __tablename__ = "daily_lesson"
     id = Column(Integer, primary_key=True)
     days = Column(Integer, ForeignKey('days.id'))
     status = Column(Boolean)
