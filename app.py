@@ -78,7 +78,7 @@ def get_calendar(current_year, next_year):
                         day_str = str(day) if day != 0 else "  "
                         if day != 0:
                             object_days['days'].append(day_str)
-                            day_of_week = calendar.day_name[calendar.weekday(year, month, day)]
+                            # day_of_week = calendar.day_name[calendar.weekday(year, month, day)]
 
                 list_days.append(object_days)
     for year in list_days:
