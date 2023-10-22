@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import *
 from flask_migrate import Migrate
 import calendar
+from datetime import datetime
 from pprint import pprint
 
 app = Flask(__name__)
@@ -63,41 +64,44 @@ list_days = []
 def get_calendar(current_year, next_year):
     for year in range(current_year, next_year + 1):
         for month in range(1, 13):
-            if month == 7 or month == 6 or month == 8:
-                pass
-            else:
+            if (year == current_year and month not in [1, 2, 3, 4, 5, 6, 7, 8]) or (
+                    year == next_year and month not in [6, 7, 8, 9, 10, 11, 12]):
                 object_days = {
                     'month': month,
                     'days': [],
                     'year': year
                 }
-                month_name = calendar.month_name[month]
+                # month_name = calendar.month_name[month]
                 cal = calendar.monthcalendar(year, month)
                 for week in cal:
                     for day in week:
                         day_str = str(day) if day != 0 else "  "
                         if day != 0:
                             object_days['days'].append(day_str)
-                            # day_of_week = calendar.day_name[calendar.weekday(year, month, day)]
-
                 list_days.append(object_days)
     for year in list_days:
         year_b = Years.query.filter(Years.year == year["year"]).first()
         if not year_b:
             year_new = Years(year=year['year'])
             year_new.add()
+        year_b = Years.query.filter(Years.year == year["year"]).first()
         if year_b:
-            month = Month(month=year['month'], years_id=year_b.id)
-            month.add()
-            month_one = Month.query.filter(Month.month == year['month']).first()
-            for day in year['days']:
-                new_day = Days(day=day, month_id=month_one.id, year_id=year_b.id)
-                new_day.add()
+            month_b = Month.query.filter(Month.month == year['month'], Month.years_id == year_b.id).first()
+            if not month_b:
+                month = Month(month=year['month'], years_id=year_b.id)
+                month.add()
+                month_one = Month.query.filter(Month.month == year['month']).first()
+                for day in year['days']:
+                    day_b = Days.query.filter(Days.day == day, Days.month_id == month_one.id,
+                                              Days.year_id == year_b.id).first()
+                    if not day_b:
+                        new_day = Days(day=day, month_id=month_one.id, year_id=year_b.id)
+                        new_day.add()
 
 
 @app.route('/')
 def hello_world():
-    print(get_calendar(2023, 2024))
+    get_calendar(datetime.now().year, datetime.now().year + 1)
     return render_template('index.html')
 
 
