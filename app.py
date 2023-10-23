@@ -28,7 +28,8 @@ class Years(db.Model):
 class Month(db.Model):
     __tablename__ = "month"
     id = Column(Integer, primary_key=True)
-    month = Column(Integer)
+    month_number = Column(Integer)
+    month_name = Column(String)
     years_id = Column(Integer, ForeignKey('years.id'))
     days = db.relationship('Days', backref='month', order_by='Days.id')
 
@@ -40,7 +41,8 @@ class Month(db.Model):
 class Days(db.Model):
     __tablename__ = "days"
     id = Column(Integer, primary_key=True)
-    day = Column(Integer)
+    day_number = Column(Integer)
+    day_name = Column(String)
     month_id = Column(Integer, ForeignKey('month.id'))
     year_id = Column(Integer, ForeignKey('years.id'))
 
@@ -66,18 +68,26 @@ def get_calendar(current_year, next_year):
         for month in range(1, 13):
             if (year == current_year and month not in [1, 2, 3, 4, 5, 6, 7, 8]) or (
                     year == next_year and month not in [6, 7, 8, 9, 10, 11, 12]):
+                month_name = calendar.month_name[month]
                 object_days = {
-                    'month': month,
+                    'month_number': month,
+                    'month_name': month_name,
                     'days': [],
                     'year': year
                 }
-                # month_name = calendar.month_name[month]
                 cal = calendar.monthcalendar(year, month)
                 for week in cal:
                     for day in week:
                         day_str = str(day) if day != 0 else "  "
                         if day != 0:
-                            object_days['days'].append(day_str)
+                            if 1 <= day <= calendar.monthrange(year, month)[1]:
+                                weeks_id = calendar.weekday(year, month, day)
+                                day_name = calendar.day_name[weeks_id]
+                            day_object = {
+                                'day_number': day_str,
+                                'day_name': day_name
+                            }
+                            object_days['days'].append(day_object)
                 list_days.append(object_days)
     for year in list_days:
         year_b = Years.query.filter(Years.year == year["year"]).first()
@@ -86,16 +96,18 @@ def get_calendar(current_year, next_year):
             year_new.add()
         year_b = Years.query.filter(Years.year == year["year"]).first()
         if year_b:
-            month_b = Month.query.filter(Month.month == year['month'], Month.years_id == year_b.id).first()
+            month_b = Month.query.filter(Month.month_number == year['month_number'],
+                                         Month.years_id == year_b.id).first()
             if not month_b:
-                month = Month(month=year['month'], years_id=year_b.id)
+                month = Month(month_number=year['month_number'], month_name=year['month_name'], years_id=year_b.id)
                 month.add()
-                month_one = Month.query.filter(Month.month == year['month']).first()
+                month_one = Month.query.filter(Month.month_number == year['month_number']).first()
                 for day in year['days']:
-                    day_b = Days.query.filter(Days.day == day, Days.month_id == month_one.id,
+                    day_b = Days.query.filter(Days.day_number == day['day_number'], Days.month_id == month_one.id,
                                               Days.year_id == year_b.id).first()
                     if not day_b:
-                        new_day = Days(day=day, month_id=month_one.id, year_id=year_b.id)
+                        new_day = Days(day_number=day['day_number'], day_name=day['day_name'],
+                                       month_id=month_one.id, year_id=year_b.id)
                         new_day.add()
 
 
@@ -107,4 +119,3 @@ def hello_world():
 
 if __name__ == 'main':
     app.run()
-# hello
